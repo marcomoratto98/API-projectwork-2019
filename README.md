@@ -9,7 +9,7 @@ git clone https://github.com/VaporMontey/API-projectwork-2019.git
 Prerequisiti:
 
 - Vedi prerequisiti *Sensors* (https://github.com/VaporMontey/Sensor-projectwork-2019/blob/redis/README.md)
-- Pacchetto di influx db che contiene *influx* e *chronograf*
+- Pacchetto di influx db che contiene *Influx* e *Chronograf*
 - *Node.js*
 
 ## Configuration
