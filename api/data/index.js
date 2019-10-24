@@ -2,23 +2,9 @@ const fs=require('fs');
 
 const Influx=require('influx');
 
-//ciao
-
-
-/*const influx = new Influx.InfluxDB({
-  
-});*/
-
 async function routes (fastify, options) {
 
-  
-  
-
     fastify.post('/', async (request, reply) => {
-
-
-
-
       fs.readFile('config.txt', (err, obj) => { 
         if (err) throw err; 
         var datas=obj.toString(); 
@@ -54,14 +40,6 @@ async function routes (fastify, options) {
       }
     
       const influx = new Influx.InfluxDB(schema);
-      
-
-
-
-
-
-
-
 
         var data=request.body;
         //console.log(JSON.stringify(data));

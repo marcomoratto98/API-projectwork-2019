@@ -1,0 +1,60 @@
+openapi: "3.0.0"
+info:
+  description: "Nel file viene documentata l'API necessaria a far funzionare l'applicazione Databus"
+  version: "1.0.0"
+  title: "DatabusAPI"
+basePath: "/api"
+tags:
+- name: "data"
+  description: "Tutti i dati rilevanti al tracciamento del mezzo di trasporto"
+schemes:
+- "http"
+paths:
+  /data:
+    post:
+      tags:
+      - "data"
+      summary: "Aggiunge una nuova entrata"
+      description: "Aggiunge una nuova posizione geografica al database"
+      operationId: "addGPS"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "L'oggetto contenente i dati da memorizzare"
+        required: true
+        schema:
+          $ref: "#/definitions/data"
+      responses:
+        200:
+          description: "OK"
+        405:
+          description: "Invalid input"
+        500:
+          description: "Server Error"
+
+components:
+  schemas:
+  data:
+    type: "object"
+    properties:
+      linea:
+        type: "integer"
+        format: "int64"
+      nautobus:
+        type: "integer"
+        format: "int64"
+      distance:
+        type: "array"
+        items:
+          $ref: "#/components/schemas/dist"
+      people:
+        type: "integer"
+        format: "int64"
+      date:
+        type: "string"
+        format: "date-time"
+  dist:
+    type: "number"
+    format: "double"
