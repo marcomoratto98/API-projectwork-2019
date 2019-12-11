@@ -39,24 +39,25 @@ createSchema = (db) => {
   }
 }
 
+function censor(censor) {
+  var i = 0;
+
+  return function(key, value) {
+    if(i !== 0 && typeof(censor) === 'object' && typeof(value) == 'object' && censor == value) 
+      return '[Circular]'; 
+
+    if(i >= 29) // seems to be a harded maximum of 30 serialized objects?
+      return '[Unknown]';
+
+    ++i; // so we know we aren't using the original object anymore
+
+    return value;  
+  }
+}
+
 
 async function routes (fastify, options) {
   fastify.get('/', async (request, reply) => {
-    
-    /*
-    fs.readFile('config.txt', (err, obj) => { 
-      if (err) 
-        throw err; 
-      var datas = obj.toString(); 
-      var data = datas.split(",");
-      var db = [];
-      for (let i = 0; i < data.length; i++) {
-        var s = data[i].split("\'");
-        db[i] = s[1];
-      }
-      //createSchema(db);
-      dbn=db;
-    })*/
 
     const influx = new Influx.InfluxDB(schema);
     influx.options.database=dbn;
@@ -64,15 +65,19 @@ async function routes (fastify, options) {
     try{
 
       influx.query(`
-        select * from ${dbn}.'autogen'.'position';
+        select * from position;
       `)
-      .then( result => reply.status(200).json(result) )
-      .catch( error => reply.status(500).send({ error }) );
+      .then( result => {
+        //console.log(result);
+        reply.status(200).send(result) })
+      .catch( error => {
+        //console.log(error);
+        reply.status(500).send({ error }) });
 
       
     }
     catch(error){
-        reply.code(500).send(error);
+        //reply.code(500).send(error);
     }
   });
 
@@ -84,11 +89,13 @@ async function routes (fastify, options) {
     try{
 
       influx.query(`
-        select * from ${dbn}.'autogen'.'position'
+        select * from position
         where linea='${request.params.id}';
       `)
-      .then( result => reply.status(200).json(result) )
-      .catch( error => reply.status(500).json({ error }) );
+      .then( result => reply.status(200).send(result) )
+      .catch( error => {
+        console.log(error);
+        reply.status(500).send({ error }) });
 
       
     }

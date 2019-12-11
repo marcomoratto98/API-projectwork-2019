@@ -79,7 +79,7 @@ client.on('connect', function (){
 
 client.on('message', function(topic, message) {
 
-    console.log(topic);
+    //console.log(topic);
     console.log(message.toString());
     var id=topic.split('/');
     //console.log(id);
@@ -93,21 +93,17 @@ client.on('message', function(topic, message) {
         try{
             //console.log(db[1]);
             influx.query(`
-                select * from "${db[1]}"."autogen"."position"
+                select * from position
                 where "linea"='${id[3]}';
-            `).then(result => {
-                //res.json(result)
-                //console.log(result.toLocaleString());
-                //result.toString()
-                client.publish(topic,result.toLocaleString());
-            }).catch(err => {
+            `).then(result => client.publish(topic,JSON.stringify(result))
+            ).catch(err => {
                 //res.status(500).send(err.stack)
-                //console.log(err);
+                console.log("ERrore"+err);
                 client.publish(topic,err.stack);
             })
 
         } catch(error){
-            console.log(error);
+            //console.log(error);
         }
     }
 
@@ -120,9 +116,9 @@ client.on('message', function(topic, message) {
                 select * from position;
             `).then(result => {
                 //res.json(result)
-                console.log(result.toLocaleString());
+                //console.log(result.toLocaleString());
                 //result.toString()
-                client.publish(topic,result.toLocaleString());
+                client.publish(topic,JSON.stringify(result));
             }).catch(err => {
                 //res.status(500).send(err.stack)
                 console.log(err);
