@@ -84,21 +84,26 @@ client.on('message', function(topic, message) {
     var id=topic.split('/');
     //console.log(id);
     //console.log(influx);
+    influx.options.database=db[1];
+    //console.log(influx.options.database);
 
     if(topic == '/bus/request/'+id[3]){
-        //Recupero di TUTTI i dati
-
+        //Recupero di dati per linea
+        
         try{
-            console.log(db[1]);
+            //console.log(db[1]);
             influx.query(`
-                select * from ${db[1]}.'autogen'.'position'
-                order by time desc;
+                select * from "${db[1]}"."autogen"."position"
+                where "linea"='${id[3]}';
             `).then(result => {
-                res.json(result)
-                //client.publish(topic,JSON.parse(result));
+                //res.json(result)
+                //console.log(result.toLocaleString());
+                //result.toString()
+                client.publish(topic,result.toLocaleString());
             }).catch(err => {
-                res.status(500).send(err.stack)
-                //client.publish(topic,err.stack);
+                //res.status(500).send(err.stack)
+                //console.log(err);
+                client.publish(topic,err.stack);
             })
 
         } catch(error){
@@ -110,20 +115,37 @@ client.on('message', function(topic, message) {
         //Recupero di TUTTI i dati
 
         try{
-            console.log(db[1]);
+            
             influx.query(`
-                select * from ${db[1]}.'autogen'.'position'
-                order by time desc;
+                select * from position;
             `).then(result => {
-                res.json(result)
-                //client.publish(topic,JSON.parse(result));
+                //res.json(result)
+                console.log(result.toLocaleString());
+                //result.toString()
+                client.publish(topic,result.toLocaleString());
             }).catch(err => {
-                res.status(500).send(err.stack)
-                //client.publish(topic,err.stack);
-            })
+                //res.status(500).send(err.stack)
+                console.log(err);
+                client.publish(topic,err.stack);
+                
+            });
+
+            /*console.log(result.length);
+            //result.toString()
+            for(var i=0;i<result.length;i++){
+                console.log(result[i]);
+                client.publish(topic,result[i].toString());
+            }*/
+/*
+            result.forEach(element => {
+                console.log(element);
+                client.publish(topic,element);    
+            });*/
+            //client.publish(topic,result);
 
         } catch(error){
             console.log(error);
+            client.publish(topic,error);
         }
 
     }

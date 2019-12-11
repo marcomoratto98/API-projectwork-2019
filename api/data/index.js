@@ -1,51 +1,49 @@
 const fs = require('fs');
 const Influx = require('influx');
 
+var db = [];
+var schema;
+var dbn;
+
+fs.readFile('config.txt', (err, obj) => { 
+  if (err) 
+    throw err; 
+  var datas = obj.toString(); 
+  var data = datas.split(",");
+  var db = [];
+  for (let i = 0; i < data.length; i++) {
+    var s = data[i].split("\'");
+    db[i] = s[1];
+  }
+  dbn=db[1];
+  createSchema(db);
+
+})
+
+createSchema = (db) => {
+  schema = {
+    host: db[0],
+    database: db[1],
+    username: db[2],
+    password: db[3],
+    schema: [{
+      measurement: 'position',
+      fields: { 
+        lat: Influx.FieldType.FLOAT,
+        lon: Influx.FieldType.FLOAT,
+        npersone: Influx.FieldType.INTEGER,
+        porte: Influx.FieldType.BOOLEAN 
+      },
+      tags: ['linea', 'nautobus']
+    }]
+  }
+}
+
+
 async function routes (fastify, options) {
-
   fastify.get('/', async (request, reply) => {
-    try{
-
-      influx.query(`
-        select * from ${db[1]}.'autogen'.'position'
-        order by time desc;
-      `)
-      .then( result => response.status(200).json(result) )
-      .catch( error => response.status(500).json({ error }) );
-
-      
-    }
-    catch(error){
-        reply.code(500).send(error);
-    }
-    finally{
-        sql.close();
-    }
-  });
-
-  fastify.get('/:id', async (request, reply) => {
-    try{
-
-      influx.query(`
-        select * from ${db[1]}.'autogen'.'position'
-        where linea='${request.params.id}'
-        order by time desc;
-      `)
-      .then( result => response.status(200).json(result) )
-      .catch( error => response.status(500).json({ error }) );
-
-      
-    }
-    catch(error){
-        reply.code(500).send(error);
-    }
-    finally{
-        sql.close();
-    }
-  });
-
-  fastify.post('/', async (request, reply) => {
-
+    
+    /*
     fs.readFile('config.txt', (err, obj) => { 
       if (err) 
         throw err; 
@@ -56,28 +54,53 @@ async function routes (fastify, options) {
         var s = data[i].split("\'");
         db[i] = s[1];
       }
-      createSchema(db);
-    })
+      //createSchema(db);
+      dbn=db;
+    })*/
 
-    createSchema = (db) => {
-      var schema = {
-        host: db[0],
-        database: db[1],
-        username: db[2],
-        password: db[3],
-        schema: [{
-          measurement: 'position',
-          fields: { 
-            lat: Influx.FieldType.FLOAT,
-            lon: Influx.FieldType.FLOAT,
-            npersone: Influx.FieldType.INTEGER,
-            porte: Influx.FieldType.BOOLEAN 
-          },
-          tags: ['linea', 'nautobus']
-        }]
-      }
-    
-      const influx = new Influx.InfluxDB(schema);
+    const influx = new Influx.InfluxDB(schema);
+    influx.options.database=dbn;
+
+    try{
+
+      influx.query(`
+        select * from ${dbn}.'autogen'.'position';
+      `)
+      .then( result => reply.status(200).json(result) )
+      .catch( error => reply.status(500).send({ error }) );
+
+      
+    }
+    catch(error){
+        reply.code(500).send(error);
+    }
+  });
+
+  fastify.get('/:id', async (request, reply) => {
+
+    const influx = new Influx.InfluxDB(schema);
+    influx.options.database=dbn;
+
+    try{
+
+      influx.query(`
+        select * from ${dbn}.'autogen'.'position'
+        where linea='${request.params.id}';
+      `)
+      .then( result => reply.status(200).json(result) )
+      .catch( error => reply.status(500).json({ error }) );
+
+      
+    }
+    catch(error){
+        reply.code(500).send(error);
+    }
+  });
+
+  fastify.post('/', async (request, reply) => {
+
+    const influx = new Influx.InfluxDB(schema);
+    influx.options.database=db[1];
 
       var data=request.body;
       var datess=Date.parse(data.date)* 1000000;
@@ -110,7 +133,6 @@ async function routes (fastify, options) {
           reply.code(500).send(error);
         });
       }).catch(error => console.log({ error }));
-    }
-  });
+    });
 }
 module.exports=routes;
